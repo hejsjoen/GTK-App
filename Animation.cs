@@ -11,15 +11,15 @@ public class Animation
     private readonly Random _random = new();
     private readonly List<(int row, int col)> _cells;
 
-    public Animation(GameWindow gameWindow, int rows, int columns)
+    public Animation(GameWindow gameWindow)
     {
         _gameWindow = gameWindow;
-        _rows = rows;
-        _columns = columns;
-        _cells = new List<(int row, int col)>();
-        for (var r = 0; r < rows; r++)
+        _rows = 9;
+        _columns = 9;
+        _cells = [];
+        for (var r = 0; r < _rows; r++)
         {
-            for (var c = 0; c < columns; c++)
+            for (var c = 0; c < _columns; c++)
             {
                 _cells.Add((r, c));
             }
@@ -28,7 +28,7 @@ public class Animation
         Timeout.Add(1000, AnimationStep);
     }
 
-    private bool AnimationStep()
+    private bool AnimationStep() // Draw green circle
     {
         if (_cells.Count > 0)
         {
@@ -36,9 +36,9 @@ public class Animation
             var (row, col) = _cells[index];
             _cells.RemoveAt(index);
 
-            _gameWindow.Grid.DrawCircle(row, col, new Color(0, 1, 0)); // Green circle
+            _gameWindow.Grid.DrawCircle(row, col, new Color(0, 1, 0)); 
         }
-        else
+        else // Grid is full
         {
             _gameWindow.Grid.ClearGrid();
             _cells.AddRange(GetCellList(_rows,_columns));
@@ -47,7 +47,7 @@ public class Animation
         return true;
     }
 
-    private static List<(int row, int col)> GetCellList(int rows, int columns)
+    private static List<(int row, int col)> GetCellList(int rows, int columns) // Create empty cell list
     {
         var cells = new List<(int row, int col)>();
         for (var r = 0; r < rows; r++)

@@ -1,82 +1,92 @@
-using Gtk;
 using Key = Gdk.Key;
+using Gtk;
 namespace GTK_app;
 
 public class Client
 {
-    private GameWindow? _chooseFourWindow;
+    private GameWindow? _gameWindow;
     private ChooseFour? _chooseFourGame;
     private KeyPressEventHandler? _keyPressHandler;
 
     private void StartGame()
     {
-        var taskSelector = new GameDialog("Select Task", null, "Select game to start", "Animation", "Choose Four");
+        var taskSelector = new GameDialog("Select Task", null,
+            "Select game to start", "Animation", "Choose Four");
 
-        taskSelector.Response += (o, args) =>
+        taskSelector.Response += (_, args) =>
         {
             if (args.ResponseId == ResponseType.Yes)
             {
-                var animWindow = new GameWindow(10, 10, "Animation");
-                new Animation(animWindow, 10, 10);
+                _gameWindow = new GameWindow("Animation");
+                new Animation(_gameWindow);
+                
+                AttachKeyPressHandlerLight();
             }
             else if (args.ResponseId == ResponseType.No)
             {
-                _chooseFourWindow = new GameWindow(9, 9, "Choose Four");
-                _chooseFourGame = new ChooseFour(_chooseFourWindow);
+                _gameWindow = new GameWindow("Choose Four");
+                _chooseFourGame = new ChooseFour(_gameWindow);
 
+                _chooseFourGame.GameOverEvent += OnGameOver;
                 AttachKeyPressHandler();
+                
+                _chooseFourGame.HandleInitialTurn();
             }
             taskSelector.Destroy();
         };
-
         taskSelector.Run();
     }
 
     private void AttachKeyPressHandler()
     {
-        if (_chooseFourWindow != null)
+        if (_gameWindow != null)
         {
-            _chooseFourWindow.KeyPressEvent -= _keyPressHandler;
+            if (_keyPressHandler != null) _gameWindow.KeyPressEvent -= _keyPressHandler;
 
             _keyPressHandler = (_, args2) =>
             {
                 var keyVal = args2.Event.KeyValue;
 
-                if (keyVal >= (uint)Key.Key_1 && keyVal <= (uint)Key.Key_9)
+                if (keyVal is >= (uint)Key.Key_1 and <= (uint)Key.Key_9)
                 {
-                    _chooseFourGame?.Play((int)(keyVal - (uint)Key.Key_1));
+                    _chooseFourGame?.PlayerMove((int)(keyVal - (uint)Key.Key_1));
                 }
 
                 if (keyVal == (uint)Key.Escape)
                 {
                     Application.Quit();
                 }
+            };
+            _gameWindow.KeyPressEvent += _keyPressHandler;
+        }
+    }
 
-                if (_chooseFourGame is { GameOver: true })
+    private void AttachKeyPressHandlerLight()
+    {
+        if (_gameWindow != null)
+        {
+            _gameWindow.KeyPressEvent -= _keyPressHandler;
+            
+            _keyPressHandler = (_, args2) =>
+            {
+                var keyVal = args2.Event.KeyValue;
+                if (keyVal == (uint)Key.Escape)
                 {
-                    string message;
-                    if (_chooseFourGame.CheckWin(1))
-                    {
-                        message = "Player Wins!";
-                    }
-                    else if (_chooseFourGame.CheckWin(2))
-                    {
-                        message = "Computer Wins!";
-                    }
-                    else
-                    {
-                        message = "Draw!";
-                    }
-
-                    _chooseFourGame.GameOver = false;
-                    _chooseFourGame.ShowResult(message);
-                    _chooseFourGame = new ChooseFour(_chooseFourWindow); // Reset the game
-                    AttachKeyPressHandler();
+                    Application.Quit();
                 }
             };
-
-            _chooseFourWindow.KeyPressEvent += _keyPressHandler;
+            _gameWindow.KeyPressEvent += _keyPressHandler;
         }
+    }
+    private void OnGameOver(string message)
+    {
+        if (_chooseFourGame == null) return;
+        _chooseFourGame.GameOverEvent -= OnGameOver;
+        _chooseFourGame.ShowResult(message);
+        _chooseFourGame = new ChooseFour(_gameWindow);
+        _chooseFourGame.GameOverEvent += OnGameOver;
+        AttachKeyPressHandler();
+        _chooseFourGame.HandleInitialTurn();
     }
 
     public static void Main()

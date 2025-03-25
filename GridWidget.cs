@@ -1,10 +1,11 @@
 using Gdk;
-using Gtk;
 using Color = Cairo.Color;
+using Gtk;
 
 namespace GTK_app;
 
-public class GridWidget : DrawingArea
+public class GridWidget 
+    : DrawingArea
 {
     private readonly int _rows;
     private readonly int _columns;
@@ -23,7 +24,7 @@ public class GridWidget : DrawingArea
         _circles = new Dictionary<(int row, int col), Color>();
         SetSizeRequest(columns * cellSize, rows * cellSize);
         CanFocus = true;
-        //Events |= EventMask.KeyPressMask;
+        Events |= EventMask.KeyPressMask;
 
         Drawn += OnDrawn;
     }
