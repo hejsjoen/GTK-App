@@ -14,7 +14,9 @@ public class ChooseFour
     private int[,]? _board;
     private int _currentPlayer;
     private readonly Random _random = new();
-    public bool GameOver;
+    private bool _gameOver;
+    private uint _timer;
+    private SetTimerDialog? _timerDialog;
     public event Action<string>? GameOverEvent; // New event
 
     public ChooseFour(GameWindow? gameWindow)
@@ -25,15 +27,29 @@ public class ChooseFour
 
     private void InitializeGame() // made this so its easier to reset the game
     {
+        SetTimer();
         _board = new int[Rows, Columns];
         _currentPlayer = _random.Next(1, 3);
-        GameOver = false;
+        _gameOver = false;
         _gameWindow?.Grid.ClearGrid();
     }
 
+    private void SetTimer()
+    {
+        _timerDialog = new SetTimerDialog();
+        _timerDialog.Response += (_, args) =>
+        {
+            if (args.ResponseId == ResponseType.Apply)
+            {
+                _timer = _timerDialog.GetTimer();
+            }
+            _timerDialog.Destroy();
+        };
+        _timerDialog.Run();
+    }
     public void PlayerMove(int column)
     {
-        if (GameOver) return;
+        if (_gameOver) return;
 
         if (_currentPlayer == 1)
         {
@@ -41,12 +57,12 @@ public class ChooseFour
             {
                 if (CheckWin(1))
                 {
-                    GameOver = true;
+                    _gameOver = true;
                     GameOverEvent?.Invoke("Player Wins!"); // Trigger event
                 }
                 else if (CheckDraw())
                 {
-                    GameOver = true;
+                    _gameOver = true;
                     GameOverEvent?.Invoke("Draw!"); // Trigger event
                 }
                 else
@@ -60,7 +76,7 @@ public class ChooseFour
 
     private bool ComputerMove()
     {
-        if (GameOver) return false;
+        if (_gameOver) return false;
         int column;
         do
         {
@@ -69,12 +85,12 @@ public class ChooseFour
 
         if (CheckWin(2))
         {
-            GameOver = true;
+            _gameOver = true;
             GameOverEvent?.Invoke("Computer Wins!"); // Trigger event
         }
         else if (CheckDraw())
         {
-            GameOver = true;
+            _gameOver = true;
             GameOverEvent?.Invoke("Draw!"); // Trigger event
         }
         else
@@ -83,7 +99,7 @@ public class ChooseFour
         }
         return false;
     }
-    public void HandleInitialTurn()
+    public void HandleInitialTurn() // This fixes the issue with the game becomes unresponsive if the computer has the first turn
     {
         if (_currentPlayer == 2)
         {

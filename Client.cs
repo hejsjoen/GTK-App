@@ -10,10 +10,10 @@ public class Client
 
     private void StartGame()
     {
-        var taskSelector = new GameDialog("Select Task", null,
+        var taskSelect = new GameDialog("Select Task", null,
             "Select game to start", "Animation", "Choose Four");
 
-        taskSelector.Response += (_, args) =>
+        taskSelect.Response += (_, args) =>
         {
             if (args.ResponseId == ResponseType.Yes)
             {
@@ -32,9 +32,9 @@ public class Client
                 
                 _chooseFourGame.HandleInitialTurn();
             }
-            taskSelector.Destroy();
+            taskSelect.Destroy();
         };
-        taskSelector.Run();
+        taskSelect.Run();
     }
 
     private void AttachKeyPressHandler()
