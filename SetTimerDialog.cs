@@ -7,7 +7,7 @@ public class SetTimerDialog
 {
     private readonly SpinButton _spinButton = new SpinButton(10, 3600, 10);
 
-    public SetTimerDialog() : base("Set Timer", null,
+    public SetTimerDialog(GameWindow w) : base("Set Timer", w,
         DialogFlags.Modal | DialogFlags.DestroyWithParent, "OK", ResponseType.Apply)
     {
         _spinButton.Value = 60;

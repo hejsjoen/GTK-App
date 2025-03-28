@@ -1,4 +1,3 @@
-using Gdk;
 using Gtk;
 using Color = Cairo.Color;
 using Timeout = GLib.Timeout;
@@ -15,7 +14,8 @@ public class ChooseFour
     private int _currentPlayer;
     private readonly Random _random = new();
     private bool _gameOver;
-    private uint _timer;
+    private uint _time;
+    private Timer _timer;
     private SetTimerDialog? _timerDialog;
     public event Action<string>? GameOverEvent; // New event
 
@@ -36,17 +36,23 @@ public class ChooseFour
 
     private void SetTimer()
     {
-        _timerDialog = new SetTimerDialog();
-        _timerDialog.Response += (_, args) =>
+        if (_gameWindow != null)
         {
-            if (args.ResponseId == ResponseType.Apply)
+            _timerDialog = new SetTimerDialog(_gameWindow);
+            _timerDialog.Response += (_, args) =>
             {
-                _timer = _timerDialog.GetTimer();
-            }
-            _timerDialog.Destroy();
-        };
-        _timerDialog.Run();
+                if (args.ResponseId == ResponseType.Apply)
+                {
+                    _time = _timerDialog.GetTimer();
+                    _timer = new Timer();
+                }
+
+                _timerDialog.Destroy();
+            };
+            _timerDialog.Run();
+        }
     }
+
     public void PlayerMove(int column)
     {
         if (_gameOver) return;
